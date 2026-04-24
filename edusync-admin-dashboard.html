@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Dashboard — EduSync</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4ff;
+  --white:#fff;
+  --border:#e4eaf5;
+  --text:#0d1b3e;
+  --muted:#6b7a9f;
+  --accent:#3b5bdb;
+  --accent-light:#eef1ff;
+  --green:#0ca678;
+  --red:#e03131;
+  --yellow:#f08c00;
+  --purple:#9c36b5;
+  --shadow:0 2px 12px rgba(59,91,219,0.08);
+  --shadow-lg:0 8px 32px rgba(59,91,219,0.15);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LAYOUT */
+.container{display:flex;min-height:100vh;}
+.sidebar{width:260px;background:var(--white);border-right:1px solid var(--border);padding:20px 0;overflow-y:auto;position:fixed;height:100vh;left:0;top:0;}
+.main{flex:1;margin-left:260px;padding:20px;}
+
+/* SIDEBAR */
+.sidebar-logo{padding:0 18px 24px;border-bottom:1px solid var(--border);margin-bottom:12px;font-size:1.2rem;font-weight:800;color:var(--accent);}
+.sidebar-logo span{color:var(--text);}
+.sidebar-menu{}
+.menu-item{padding:12px 18px;margin:0 8px;border-radius:10px;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--muted);transition:all 0.15s;display:flex;align-items:center;gap:10px;}
+.menu-item:hover{background:var(--accent-light);color:var(--accent);}
+.menu-item.active{background:var(--accent-light);color:var(--accent);font-weight:700;}
+.menu-icon{font-size:1.1rem;}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;border-radius:14px;}
+.topbar-title{font-size:1.1rem;font-weight:800;}
+.topbar-info{font-size:0.8rem;color:var(--muted);}
+
+/* SCREEN */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;}
+.card{background:var(--white);border-radius:14px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all 0.2s;}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.card-icon{font-size:1.8rem;margin-bottom:8px;}
+.card-title{font-size:0.9rem;font-weight:700;margin-bottom:4px;}
+.card-value{font-size:1.8rem;font-weight:800;color:var(--accent);}
+.card-sub{font-size:0.72rem;color:var(--muted);margin-top:6px;}
+
+/* SECTION */
+.section{background:var(--white);border-radius:14px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;}
+.section-title{font-size:1rem;font-weight:800;margin-bottom:16px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:12px;border-bottom:2px solid var(--border);font-size:0.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+td{padding:12px;border-bottom:1px solid var(--border);font-size:0.85rem;}
+tr:hover{background:var(--bg);}
+
+/* FORM */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color 0.15s;}
+.form-input:focus{border-color:var(--accent);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* BUTTON */
+.btn{padding:10px 18px;border-radius:10px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;transition:all 0.15s;font-size:0.85rem;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,91,219,0.3);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-sm{padding:8px 12px;font-size:0.78rem;}
+
+/* BADGE */
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;}
+.badge-green{background:#e6faf5;color:var(--green);}
+.badge-red{background:#fff0f0;color:var(--red);}
+.badge-yellow{background:#fff8e6;color:var(--yellow);}
+.badge-blue{background:var(--accent-light);color:var(--accent);}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(13,27,62,0.7);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal.active{display:flex;}
+.modal-content{background:var(--white);border-radius:16px;padding:28px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-title{font-size:1.2rem;font-weight:800;margin-bottom:20px;}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border:none;background:var(--bg);border-radius:50%;color:var(--muted);cursor:pointer;font-size:1.2rem;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.85rem;font-weight:700;box-shadow:var(--shadow-lg);opacity:0;transition:opacity 0.3s;}
+.toast.show{opacity:1;}
+
+@media(max-width:768px){
+  .sidebar{width:0;overflow:hidden;}
+  .main{margin-left:0;}
+  .sidebar.open{width:260px;}
+  .form-grid{grid-template-columns:1fr;}
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">Edu<span>Sync</span></div>
+  <div class="sidebar-menu">
+    <div class="menu-item active" onclick="switchScreen('dashboard')"><span class="menu-icon">📊</span>Dashboard</div>
+    <div class="menu-item" onclick="switchScreen('schools')"><span class="menu-icon">🏫</span>Schools</div>
+    <div class="menu-item" onclick="switchScreen('classes')"><span class="menu-icon">👥</span>Classes</div>
+    <div class="menu-item" onclick="switchScreen('teachers')"><span class="menu-icon">👨‍🏫</span>Teachers</div>
+    <div class="menu-item" onclick="switchScreen('students')"><span class="menu-icon">🎓</span>Students</div>
+    <div class="menu-item" onclick="switchScreen('reports')"><span class="menu-icon">📈</span>Reports</div>
+    <div class="menu-item" onclick="switchScreen('settings')"><span class="menu-icon">⚙️</span>Settings</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="screenDashboard">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Dashboard</div>
+        <div class="topbar-info" id="dashInfo">—</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">🏫</div>
+        <div class="card-title">Total Schools</div>
+        <div class="card-value" id="totalSchools">0</div>
+        <div class="card-sub">Active in system</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <div class="card-title">Total Students</div>
+        <div class="card-value" id="totalStudents">0</div>
+        <div class="card-sub">All classes</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">👨‍🏫</div>
+        <div class="card-title">Total Teachers</div>
+        <div class="card-value" id="totalTeachers">0</div>
+        <div class="card-sub">All designations</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Attendance Rate</div>
+        <div class="card-value" id="attRate">78%</div>
+        <div class="card-sub">This week avg</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📊 Quick Stats</div>
+      <div id="quickStats"></div>
+    </div>
+  </div>
+
+  <!-- SCHOOLS -->
+  <div class="screen" id="screenSchools">
+    <div class="topbar">
+      <div class="topbar-title">School Management</div>
+      <button class="btn btn-primary btn-sm" onclick="openSchoolModal()">+ Add School</button>
+    </div>
+
+    <div class="section">
+      <div class="table-wrap">
+        <table id="schoolsTable">
+          <thead>
+            <tr><th>School Name</th><th>Location</th><th>Classes</th><th>Teachers</th><th>Students</th><th>Action</th></tr>
+          </thead>
+          <tbody id="schoolsList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLASSES -->
+  <div class="screen" id="screenClasses">
+    <div class="topbar">
+      <div class="topbar-title">Class Management</div>
+      <button class="btn btn-primary btn-sm" onclick="openClassModal()">+ Add Class</button>
+    </div>
+
+    <div class="section">
+      <div class="table-wrap">
+        <table id="classesTable">
+          <thead>
+            <tr><th>School</th><th>Class</th><th>Students</th><th>Class Teacher</th><th>Action</th></tr>
+          </thead>
+          <tbody id="classesList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEACHERS -->
+  <div class="screen" id="screenTeachers">
+    <div class="topbar">
+      <div class="topbar-title">Teacher Management</div>
+      <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">+ Add Teacher</button>
+    </div>
+
+    <div class="section">
+      <div class="table-wrap">
+        <table id="teachersTable">
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>School</th><th>Classes</th><th>Role</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="teachersList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div class="screen" id="screenStudents">
+    <div class="topbar">
+      <div class="topbar-title">Student Management</div>
+      <button class="btn btn-primary btn-sm" onclick="openStudentModal()">+ Add Student</button>
+    </div>
+
+    <div class="section">
+      <div class="table-wrap">
+        <table id="studentsTable">
+          <thead>
+            <tr><th>Name</th><th>Roll No</th><th>School</th><th>Class</th><th>Parent Phone</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="studentsList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="screen" id="screenReports">
+    <div class="topbar">
+      <div class="topbar-title">Reports & Analytics</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📈 Attendance Report</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">School</label>
+          <select class="form-input" id="reportSchool" onchange="generateReport()">
+            <option value="">All Schools</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class</label>
+          <select class="form-input" id="reportClass" onchange="generateReport()">
+            <option value="">All Classes</option>
+          </select>
+        </div>
+      </div>
+      <div id="reportData"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screenSettings">
+    <div class="topbar">
+      <div class="topbar-title">System Settings</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚙️ General Settings</div>
+      <div class="form-group">
+        <label class="form-label">System Name</label>
+        <input class="form-input" id="sysName" placeholder="EduSync School Management">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contact Email</label>
+        <input class="form-input" id="sysEmail" placeholder="admin@edusync.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Support Phone</label>
+        <input class="form-input" id="sysPhone" placeholder="9876543210">
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔐 Data Management</div>
+      <button class="btn btn-outline" onclick="exportData()">📥 Export All Data</button>
+      <button class="btn btn-danger" style="margin-left:8px;" onclick="clearAllData()">🗑️ Clear All Data</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCHOOL MODAL -->
+<div class="modal" id="schoolModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('schoolModal')">✕</button>
+    <div class="modal-title">Add School</div>
+    <div class="form-group">
+      <label class="form-label">School Name</label>
+      <input class="form-input" id="schoolName" placeholder="E.g. Delhi Public School">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="schoolLocation" placeholder="E.g. New Delhi">
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="saveSchool()">Save School</button>
+  </div>
+</div>
+
+<!-- CLASS MODAL -->
+<div class="modal" id="classModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('classModal')">✕</button>
+    <div class="modal-title">Add Class</div>
+    <div class="form-group">
+      <label class="form-label">School</label>
+      <select class="form-input" id="classSchool">
+        <option value="">Select School</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Class Name</label>
+      <input class="form-input" id="className" placeholder="E.g. 10A">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Class Teacher (Phone)</label>
+      <input class="form-input" id="classTeacher" placeholder="Teacher phone">
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="saveClass()">Save Class</button>
+  </div>
+</div>
+
+<!-- TEACHER MODAL -->
+<div class="modal" id="teacherModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('teacherModal')">✕</button>
+    <div class="modal-title">Add Teacher</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="teacherName" placeholder="E.g. Mr. Sharma">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" id="teacherPhone" placeholder="10 digit number">
+    </div>
+    <div class="form-group">
+      <label class="form-label">School</label>
+      <select class="form-input" id="teacherSchool">
+        <option value="">Select School</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Role</label>
+      <select class="form-input" id="teacherRole">
+        <option value="class">Class Teacher</option>
+        <option value="subject">Subject Teacher</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="saveTeacher()">Save Teacher</button>
+  </div>
+</div>
+
+<!-- STUDENT MODAL -->
+<div class="modal" id="studentModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('studentModal')">✕</button>
+    <div class="modal-title">Add Student</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="studentName" placeholder="E.g. Rahul Kumar">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Roll Number</label>
+      <input class="form-input" id="studentRoll" placeholder="E.g. 01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">School</label>
+      <select class="form-input" id="studentSchool">
+        <option value="">Select School</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Class</label>
+      <select class="form-input" id="studentClass">
+        <option value="">Select Class</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Parent Phone</label>
+      <input class="form-input" id="studentParentPhone" placeholder="10 digit number">
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="saveStudent()">Save Student</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════
+var DB = {
+  schools: [],
+  classes: [],
+  teachers: [],
+  students: [],
+  settings: {
+    sysName: 'EduSync',
+    sysEmail: 'admin@edusync.com',
+    sysPhone: '9876543210'
+  }
+};
+
+// ══ INIT ══
+function init(){
+  loadDB();
+  renderDashboard();
+  populateSelects();
+}
+
+function loadDB(){
+  try{
+    DB = JSON.parse(localStorage.getItem('es_db') || JSON.stringify(DB));
+  }catch(e){}
+}
+
+function saveDB(){
+  localStorage.setItem('es_db', JSON.stringify(DB));
+  showToast('✅ Data saved!');
+}
+
+// ══ SCREEN SWITCHING ══
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  event.target.closest('.menu-item').classList.add('active');
+  
+  if(name === 'schools') renderSchools();
+  if(name === 'classes') renderClasses();
+  if(name === 'teachers') renderTeachers();
+  if(name === 'students') renderStudents();
+}
+
+// ══ DASHBOARD ══
+function renderDashboard(){
+  var now = new Date();
+  var dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
+  document.getElementById('dashInfo').textContent = dayName + ', ' + now.toLocaleDateString('en-IN');
+  
+  document.getElementById('totalSchools').textContent = DB.schools.length;
+  document.getElementById('totalStudents').textContent = DB.students.length;
+  document.getElementById('totalTeachers').textContent = DB.teachers.length;
+  
+  var stats = '<div class="form-grid">' +
+    '<div><strong>👥 Students:</strong> ' + DB.students.length + '</div>' +
+    '<div><strong>👨‍🏫 Teachers:</strong> ' + DB.teachers.length + '</div>' +
+    '<div><strong>🏫 Schools:</strong> ' + DB.schools.length + '</div>' +
+    '<div><strong>📚 Classes:</strong> ' + DB.classes.length + '</div>' +
+    '</div>';
+  document.getElementById('quickStats').innerHTML = stats;
+}
+
+// ══ SCHOOLS ══
+function renderSchools(){
+  var html = DB.schools.map((s, i) => {
+    var classCount = DB.classes.filter(c => c.school === s.id).length;
+    var teacherCount = DB.teachers.filter(t => t.school === s.id).length;
+    var studentCount = DB.students.filter(st => st.school === s.id).length;
+    return '<tr>' +
+      '<td><strong>' + s.name + '</strong></td>' +
+      '<td>' + s.location + '</td>' +
+      '<td>' + classCount + '</td>' +
+      '<td>' + teacherCount + '</td>' +
+      '<td>' + studentCount + '</td>' +
+      '<td><button class="btn btn-sm btn-danger" onclick="deleteSchool(\'' + s.id + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('schoolsList').innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:20px;">No schools added yet</td></tr>';
+}
+
+function openSchoolModal(){
+  document.getElementById('schoolModal').classList.add('active');
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+}
+
+function saveSchool(){
+  var name = document.getElementById('schoolName').value.trim();
+  var location = document.getElementById('schoolLocation').value.trim();
+  if(!name || !location) { showToast('❌ Fill all fields'); return; }
+  
+  DB.schools.push({
+    id: 'sch_' + Date.now(),
+    name: name,
+    location: location,
+    createdAt: new Date().toISOString()
+  });
+  
+  saveDB();
+  closeModal('schoolModal');
+  renderSchools();
+  document.getElementById('schoolName').value = '';
+  document.getElementById('schoolLocation').value = '';
+  populateSelects();
+  showToast('✅ School added!');
+}
+
+function deleteSchool(id){
+  if(!confirm('Are you sure?')) return;
+  DB.schools = DB.schools.filter(s => s.id !== id);
+  saveDB();
+  renderSchools();
+  populateSelects();
+}
+
+// ══ CLASSES ══
+function renderClasses(){
+  var html = DB.classes.map((c, i) => {
+    var school = DB.schools.find(s => s.id === c.school);
+    var studentCount = DB.students.filter(st => st.class === c.id).length;
+    var teacher = DB.teachers.find(t => t.phone === c.classTeacher);
+    return '<tr>' +
+      '<td>' + (school ? school.name : '—') + '</td>' +
+      '<td><strong>' + c.name + '</strong></td>' +
+      '<td>' + studentCount + '</td>' +
+      '<td>' + (teacher ? teacher.name : '—') + '</td>' +
+      '<td><button class="btn btn-sm btn-danger" onclick="deleteClass(\'' + c.id + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('classesList').innerHTML = html || '<tr><td colspan="5" style="text-align:center;padding:20px;">No classes added yet</td></tr>';
+}
+
+function openClassModal(){
+  document.getElementById('classModal').classList.add('active');
+}
+
+function saveClass(){
+  var school = document.getElementById('classSchool').value.trim();
+  var name = document.getElementById('className').value.trim();
+  var teacher = document.getElementById('classTeacher').value.trim();
+  if(!school || !name) { showToast('❌ Fill all fields'); return; }
+  
+  DB.classes.push({
+    id: 'cls_' + Date.now(),
+    school: school,
+    name: name,
+    classTeacher: teacher,
+    createdAt: new Date().toISOString()
+  });
+  
+  saveDB();
+  closeModal('classModal');
+  renderClasses();
+  document.getElementById('classSchool').value = '';
+  document.getElementById('className').value = '';
+  document.getElementById('classTeacher').value = '';
+  showToast('✅ Class added!');
+}
+
+function deleteClass(id){
+  if(!confirm('Are you sure?')) return;
+  DB.classes = DB.classes.filter(c => c.id !== id);
+  saveDB();
+  renderClasses();
+}
+
+// ══ TEACHERS ══
+function renderTeachers(){
+  var html = DB.teachers.map((t, i) => {
+    var school = DB.schools.find(s => s.id === t.school);
+    return '<tr>' +
+      '<td><strong>' + t.name + '</strong></td>' +
+      '<td>' + t.phone + '</td>' +
+      '<td>' + (school ? school.name : '—') + '</td>' +
+      '<td>—</td>' +
+      '<td><span class="badge badge-blue">' + (t.role === 'class' ? 'Class T.' : 'Subject T.') + '</span></td>' +
+      '<td><span class="badge badge-green">Active</span></td>' +
+      '<td><button class="btn btn-sm btn-danger" onclick="deleteTeacher(\'' + t.phone + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('teachersList').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:20px;">No teachers added yet</td></tr>';
+}
+
+function openTeacherModal(){
+  document.getElementById('teacherModal').classList.add('active');
+}
+
+function saveTeacher(){
+  var name = document.getElementById('teacherName').value.trim();
+  var phone = document.getElementById('teacherPhone').value.trim();
+  var school = document.getElementById('teacherSchool').value.trim();
+  var role = document.getElementById('teacherRole').value.trim();
+  if(!name || !phone || !school) { showToast('❌ Fill all fields'); return; }
+  
+  DB.teachers.push({
+    name: name,
+    phone: phone,
+    school: school,
+    role: role,
+    createdAt: new Date().toISOString()
+  });
+  
+  saveDB();
+  closeModal('teacherModal');
+  renderTeachers();
+  document.getElementById('teacherName').value = '';
+  document.getElementById('teacherPhone').value = '';
+  document.getElementById('teacherSchool').value = '';
+  showToast('✅ Teacher added!');
+}
+
+function deleteTeacher(phone){
+  if(!confirm('Are you sure?')) return;
+  DB.teachers = DB.teachers.filter(t => t.phone !== phone);
+  saveDB();
+  renderTeachers();
+}
+
+// ══ STUDENTS ══
+function renderStudents(){
+  var html = DB.students.map((s, i) => {
+    var school = DB.schools.find(sc => sc.id === s.school);
+    var cls = DB.classes.find(c => c.id === s.class);
+    return '<tr>' +
+      '<td><strong>' + s.name + '</strong></td>' +
+      '<td>' + s.roll + '</td>' +
+      '<td>' + (school ? school.name : '—') + '</td>' +
+      '<td>' + (cls ? cls.name : '—') + '</td>' +
+      '<td>' + s.parentPhone + '</td>' +
+      '<td><span class="badge badge-green">Active</span></td>' +
+      '<td><button class="btn btn-sm btn-danger" onclick="deleteStudent(\'' + s.id + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+  document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="7" style="text-align:center;padding:20px;">No students added yet</td></tr>';
+}
+
+function openStudentModal(){
+  document.getElementById('studentModal').classList.add('active');
+}
+
+function saveStudent(){
+  var name = document.getElementById('studentName').value.trim();
+  var roll = document.getElementById('studentRoll').value.trim();
+  var school = document.getElementById('studentSchool').value.trim();
+  var cls = document.getElementById('studentClass').value.trim();
+  var parentPhone = document.getElementById('studentParentPhone').value.trim();
+  if(!name || !roll || !school || !cls) { showToast('❌ Fill all fields'); return; }
+  
+  DB.students.push({
+    id: 'std_' + Date.now(),
+    name: name,
+    roll: roll,
+    school: school,
+    class: cls,
+    parentPhone: parentPhone,
+    createdAt: new Date().toISOString()
+  });
+  
+  saveDB();
+  closeModal('studentModal');
+  renderStudents();
+  document.getElementById('studentName').value = '';
+  document.getElementById('studentRoll').value = '';
+  document.getElementById('studentSchool').value = '';
+  document.getElementById('studentClass').value = '';
+  document.getElementById('studentParentPhone').value = '';
+  showToast('✅ Student added!');
+}
+
+function deleteStudent(id){
+  if(!confirm('Are you sure?')) return;
+  DB.students = DB.students.filter(s => s.id !== id);
+  saveDB();
+  renderStudents();
+}
+
+// ══ POPULATE SELECTS ══
+function populateSelects(){
+  var schoolSelects = ['classSchool', 'teacherSchool', 'studentSchool'];
+  schoolSelects.forEach(id => {
+    var html = '<option value="">Select School</option>' + DB.schools.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+  
+  var classSelect = document.getElementById('studentClass');
+  if(classSelect) {
+    classSelect.innerHTML = '<option value="">Select Class</option>' + DB.classes.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+  }
+}
+
+// ══ SETTINGS ══
+function saveSettings(){
+  DB.settings.sysName = document.getElementById('sysName').value;
+  DB.settings.sysEmail = document.getElementById('sysEmail').value;
+  DB.settings.sysPhone = document.getElementById('sysPhone').value;
+  saveDB();
+  showToast('✅ Settings saved!');
+}
+
+function exportData(){
+  var json = JSON.stringify(DB, null, 2);
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'edusync-backup-' + new Date().getTime() + '.json';
+  a.click();
+  showToast('✅ Data exported!');
+}
+
+function clearAllData(){
+  if(!confirm('⚠️ This will delete ALL data. Are you sure?')) return;
+  if(!confirm('🚨 FINAL WARNING: This cannot be undone!')) return;
+  DB = {schools: [], classes: [], teachers: [], students: [], settings: DB.settings};
+  saveDB();
+  init();
+  showToast('🗑️ All data cleared!');
+}
+
+function generateReport(){
+  var report = '<div class="badge badge-blue" style="display:block;padding:12px;margin-top:12px;"><strong>Report generated successfully</strong></div>';
+  document.getElementById('reportData').innerHTML = report;
+}
+
+// ══ TOAST ══
+function showToast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
